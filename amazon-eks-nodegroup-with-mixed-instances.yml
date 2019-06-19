@@ -63,7 +63,7 @@ Parameters:
   NodeInstanceType:
     Description: Default EC2 instance type for the node instances.
     Type: String
-    Default: m4.large
+    Default: m5.4xlarge
     AllowedValues:
     - t2.small
     - t2.medium
@@ -189,7 +189,7 @@ Parameters:
   InstanceTypesOverride:
     Type: String
     Description: "multiple spot instances to override(separated by comma)"
-    Default: "m5.large,c5.large,m4.large,c4.large"
+    Default: "m5.4xlarge,c5.4xlarge,m4.10xlarge,c4.8xlarge,c5.9xlarge,m5.12xlarge"
 
   UseExistingNodeSecurityGroups:
     Type: String
