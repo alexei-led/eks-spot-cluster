@@ -1,6 +1,6 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Amazon EKS Mixed (OnDemand and Spot) Node Group'
+Description: 'Amazon EKS Mixed (OnDemand and Spot) GPU Node Group'
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -18,8 +18,6 @@ Metadata:
           - VpcId
           - NodeGroupName
           - Subnets
-          - BootstrapArgumentsForOnDemand
-          - BootstrapArgumentsForSpotFleet
       -
         Label:
           default: "Auto Scaling Configuration"
@@ -133,17 +131,6 @@ Parameters:
     Type: String
     Default: "EXISTING-EKS-CLUSTER"
 
-  BootstrapArgumentsForOnDemand:
-    Description: Arguments to pass to the bootstrap script. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami
-    Default: "--kubelet-extra-args --node-labels=lifecycle=OnDemand,gpu=true"
-    Type: String
-
-  BootstrapArgumentsForSpotFleet:
-    Description: Arguments to pass to the bootstrap script. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami
-    Default: "--kubelet-extra-args '--node-labels=lifecycle=Ec2Spot,gpu=true --register-with-taints=spotInstance=true:PreferNoSchedule'
-"
-    Type: String
-
   ClusterControlPlaneSecurityGroup:
     Description: The security group of the cluster control plane.
     Type: AWS::EC2::SecurityGroup::Id
@@ -151,7 +138,7 @@ Parameters:
   NodeGroupName:
     Description: Unique identifier for the Node Group.
     Type: String
-    Default: "gpu-spotworkers"
+    Default: "gpu-mixed-workers"
 
 Conditions:
   IsASGAutoAssignPublicIp: !Equals [ !Ref ASGAutoAssignPublicIp , "yes" ]
@@ -275,6 +262,18 @@ Resources:
       - Key: !Sub 'kubernetes.io/cluster/${ClusterName}'
         Value: 'owned'
         PropagateAtLaunch: true
+      - Key: 'k8s.io/cluster-autoscaler/node-template/taint/dedicated'
+        Value: 'nvidia.com/gpu=true'
+        PropagateAtLaunch: true
+      - Key: 'k8s.io/cluster-autoscaler/node-template/label/nvidia.com/gpu'
+        Value: 'true'
+        PropagateAtLaunch: true
+      - Key: 'k8s.io/cluster-autoscaler/enabled'
+        Value: 'true'
+        PropagateAtLaunch: true
+      - Key: !Sub 'k8s.io/cluster-autoscaler/${ClusterName}'
+        Value: 'owned'
+        PropagateAtLaunch: true
     UpdatePolicy:
       AutoScalingRollingUpdate:
         MinInstancesInService: !Ref NodeAutoScalingGroupDesiredSize
@@ -316,14 +315,22 @@ Resources:
             #!/bin/bash
             set -o xtrace
             iid=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+            family=$(curl -s http://169.254.169.254/latest/meta-data/instance-type | awk -F'.' '{print $1}')
+            gpu_type="nvidia-tesla-k80"
+            case "$family" in
+              p2)
+                gpu_type="nvidia-tesla-k80" ;;
+              p3)
+                gpu_type="nvidia-tesla-v100" ;;
+            esac
             export AWS_DEFAULT_REGION=${AWS::Region}
             ilc=`aws ec2 describe-instances --instance-ids  $iid  --query 'Reservations[0].Instances[0].InstanceLifecycle' --output text`
             if [ "$ilc" == "spot" ]; then
-              /etc/eks/bootstrap.sh ${ClusterName} ${BootstrapArgumentsForSpotFleet}
+              /etc/eks/bootstrap.sh ${ClusterName} --kubelet-extra-args "--node-labels=lifecycle=OnDemand,nvidia.com/gpu=true,k8s.amazonaws.com/accelerator=$gpu_type --register-with-taints=nvidia.com/gpu=true:NoSchedule"
             else
-              /etc/eks/bootstrap.sh ${ClusterName} ${BootstrapArgumentsForOnDemand}
+              /etc/eks/bootstrap.sh ${ClusterName} --kubelet-extra-args "--node-labels=lifecycle=Ec2Spot,nvidia.com/gpu=true,k8s.amazonaws.com/accelerator=$gpu_type --register-with-taints=spotInstance=true:PreferNoSchedule,nvidia.com/gpu=true:NoSchedule"
             fi
-            # /etc/eks/bootstrap.sh ${ClusterName} $BootstrapArgumentsForOnDemand
+            # send CF exit code
             /opt/aws/bin/cfn-signal --exit-code $? \
                      --stack  ${AWS::StackName} \
                      --resource NodeGroup  \

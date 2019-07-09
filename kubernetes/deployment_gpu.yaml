@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cuda-vector-add
+  labels:
+    app: cuda-vector-add
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: cuda-vector-add
+  template:
+    metadata:
+      name: cuda-vector-add
+      labels:
+        app: cuda-vector-add
+    spec:
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: k8s.amazonaws.com/accelerator
+      #           operator: In
+      #           values:
+      #           - nvidia-tesla-k80
+      #           - nvidia-tesla-v100
+      nodeSelector:
+        nvidia.com/gpu: "true"
+      tolerations:
+      - key: "nvidia.com/gpu"
+        operator: "Exists"
+        effect: "NoSchedule"
+      containers:
+        - name: cuda-vector-add
+          # https://github.com/kubernetes/kubernetes/blob/v1.7.11/test/images/nvidia-cuda/Dockerfile
+          image: "k8s.gcr.io/cuda-vector-add:v0.1"
+          resources:
+            limits:
+              nvidia.com/gpu: 1 # requesting 1 GPU
