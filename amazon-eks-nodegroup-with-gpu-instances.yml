@@ -326,9 +326,9 @@ Resources:
             export AWS_DEFAULT_REGION=${AWS::Region}
             ilc=`aws ec2 describe-instances --instance-ids  $iid  --query 'Reservations[0].Instances[0].InstanceLifecycle' --output text`
             if [ "$ilc" == "spot" ]; then
-              /etc/eks/bootstrap.sh ${ClusterName} --kubelet-extra-args "--node-labels=lifecycle=OnDemand,nvidia.com/gpu=true,k8s.amazonaws.com/accelerator=$gpu_type --register-with-taints=nvidia.com/gpu=true:NoSchedule"
-            else
               /etc/eks/bootstrap.sh ${ClusterName} --kubelet-extra-args "--node-labels=lifecycle=Ec2Spot,nvidia.com/gpu=true,k8s.amazonaws.com/accelerator=$gpu_type --register-with-taints=spotInstance=true:PreferNoSchedule,nvidia.com/gpu=true:NoSchedule"
+            else
+              /etc/eks/bootstrap.sh ${ClusterName} --kubelet-extra-args "--node-labels=lifecycle=OnDemand,nvidia.com/gpu=true,k8s.amazonaws.com/accelerator=$gpu_type --register-with-taints=nvidia.com/gpu=true:NoSchedule"
             fi
             # send CF exit code
             /opt/aws/bin/cfn-signal --exit-code $? \

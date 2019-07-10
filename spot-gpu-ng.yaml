@@ -1,0 +1,110 @@
+# An example of ClusterConfig showing nodegroups with spot instances
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: moon-kube
+  region: us-west-2
+
+nodeGroups:
+  - name: gpu-spot-ng-a
+    instanceType: mixed
+    desiredCapacity: 0
+    minSize: 0
+    maxSize: 10
+    volumeSize: 30
+    volumeType: gp2
+    iam:
+      instanceProfileARN: arn:aws:iam::970757854474:instance-profile/ssm-managed-role
+    instancesDistribution:
+      onDemandPercentageAboveBaseCapacity: 0
+      instanceTypes:
+        - p3.8xlarge
+        - p2.8xlarge
+        - p2.xlarge
+        - p3.2xlarge
+        - p3.16xlarge
+        - p2.16xlarge
+    tags:
+      k8s.io/cluster-autoscaler/node-template/taint/dedicated: nvidia.com/gpu=true
+      k8s.io/cluster-autoscaler/node-template/label/nvidia.com/gpu: 'true'
+      k8s.io/cluster-autoscaler/enabled: 'true'
+      k8s.io/cluster-autoscaler/moon-kube: 'owned'
+    labels:
+      lifecycle: Ec2Spot
+      nvidia.com/gpu: 'true'
+      k8s.amazonaws.com/accelerator: nvidia-tesla
+    taints:
+      spotInstance: "true:PreferNoSchedule"
+      nvidia.com/gpu: "true:NoSchedule"
+    privateNetworking: true
+    availabilityZones: ["us-west-2a"]
+
+  - name: gpu-spot-ng-b
+    instanceType: mixed
+    desiredCapacity: 0
+    minSize: 0
+    maxSize: 10
+    volumeSize: 30
+    volumeType: gp2
+    iam:
+      instanceProfileARN: arn:aws:iam::970757854474:instance-profile/ssm-managed-role
+    instancesDistribution:
+      onDemandPercentageAboveBaseCapacity: 0
+      instanceTypes:
+        - p3.8xlarge
+        - p2.8xlarge
+        - p2.xlarge
+        - p3.2xlarge
+        - p3.16xlarge
+        - p2.16xlarge
+    tags:
+      k8s.io/cluster-autoscaler/node-template/taint/dedicated: nvidia.com/gpu=true
+      k8s.io/cluster-autoscaler/node-template/label/nvidia.com/gpu: 'true'
+      k8s.io/cluster-autoscaler/enabled: 'true'
+      k8s.io/cluster-autoscaler/moon-kube: 'owned'
+    labels:
+      lifecycle: Ec2Spot
+      nvidia.com/gpu: 'true'
+      k8s.amazonaws.com/accelerator: nvidia-tesla
+    taints:
+      spotInstance: "true:PreferNoSchedule"
+      nvidia.com/gpu: "true:NoSchedule"
+    privateNetworking: true
+    availabilityZones: ["us-west-2b"]
+
+  - name: gpu-spot-ng-c
+    instanceType: mixed
+    desiredCapacity: 0
+    minSize: 0
+    maxSize: 10
+    volumeSize: 30
+    volumeType: gp2
+    iam:
+      instanceProfileARN: arn:aws:iam::970757854474:instance-profile/ssm-managed-role
+    instancesDistribution:
+      onDemandPercentageAboveBaseCapacity: 0
+      instanceTypes:
+        - p3.8xlarge
+        - p2.8xlarge
+        - p2.xlarge
+        - p3.2xlarge
+        - p3.16xlarge
+        - p2.16xlarge
+    tags:
+      k8s.io/cluster-autoscaler/node-template/taint/dedicated: nvidia.com/gpu=true
+      k8s.io/cluster-autoscaler/node-template/label/nvidia.com/gpu: 'true'
+      k8s.io/cluster-autoscaler/enabled: 'true'
+      k8s.io/cluster-autoscaler/moon-kube: 'owned'
+    labels:
+      lifecycle: Ec2Spot
+      nvidia.com/gpu: 'true'
+      k8s.amazonaws.com/accelerator: nvidia-tesla
+    taints:
+      spotInstance: "true:PreferNoSchedule"
+      nvidia.com/gpu: "true:NoSchedule"
+    privateNetworking: true
+    availabilityZones: ["us-west-2c"]
+
+
