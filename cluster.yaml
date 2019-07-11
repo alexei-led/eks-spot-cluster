@@ -1,0 +1,205 @@
+# An example of ClusterConfig showing nodegroups with spot instances
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: gaia-kube
+  region: us-west-2
+
+availabilityZones: ["us-west-2a", "us-west-2b", "us-west-2c"]
+
+nodeGroups:
+  # spot workers NG - multi AZ, scale from 3
+  - name: spot-ng
+    ami: auto
+    instanceType: mixed
+    desiredCapacity: 3
+    minSize: 2
+    maxSize: 20
+    volumeSize: 100
+    volumeType: gp2
+    volumeEncrypted: true
+    iam:
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+      withAddonPolicies:
+        imageBuilder: true
+        autoScaler: true
+        certManager: true
+        appMesh: true
+        ebs: true
+        fsx: true
+        efs: true
+        albIngress: true
+        xRay: true
+        cloudWatch: true
+    instancesDistribution:
+      onDemandPercentageAboveBaseCapacity: 0
+      instanceTypes:
+        - m4.2xlarge
+        - m4.4xlarge
+        - c4.4xlarge
+        - c5.2xlarge
+        - m5.2xlarge
+      spotInstancePools: 15
+    tags:
+      k8s.io/cluster-autoscaler/enabled: 'true'
+    labels:
+      lifecycle: Ec2Spot
+    privateNetworking: true
+    availabilityZones: ["us-west-2a", "us-west-2b", "us-west-2c"]
+
+  # spot GPU NG - west-2a AZ, scale from 0
+  - name: gpu-spot-ng-a
+    ami: auto
+    instanceType: mixed
+    desiredCapacity: 0
+    minSize: 0
+    maxSize: 10
+    volumeSize: 100
+    volumeType: gp2
+    volumeEncrypted: true
+    iam:
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+      withAddonPolicies:
+        imageBuilder: true
+        autoScaler: true
+        certManager: true
+        appMesh: true
+        ebs: true
+        fsx: true
+        efs: true
+        albIngress: true
+        xRay: true
+        cloudWatch: true
+    instancesDistribution:
+      onDemandPercentageAboveBaseCapacity: 0
+      instanceTypes:
+        - p3.8xlarge
+        - p2.8xlarge
+        - p2.xlarge
+        - p3.2xlarge
+        - p3.16xlarge
+        - p2.16xlarge
+      spotInstancePools: 6
+    tags:
+      k8s.io/cluster-autoscaler/node-template/taint/dedicated: nvidia.com/gpu=true
+      k8s.io/cluster-autoscaler/node-template/label/nvidia.com/gpu: 'true'
+      k8s.io/cluster-autoscaler/enabled: 'true'
+    labels:
+      lifecycle: Ec2Spot
+      nvidia.com/gpu: 'true'
+      k8s.amazonaws.com/accelerator: nvidia-tesla
+    taints:
+      spotInstance: "true:PreferNoSchedule"
+      nvidia.com/gpu: "true:NoSchedule"
+    privateNetworking: true
+    availabilityZones: ["us-west-2a"]
+
+  # spot GPU NG - west-2b AZ, scale from 0
+  - name: gpu-spot-ng-b
+    ami: auto
+    instanceType: mixed
+    desiredCapacity: 0
+    minSize: 0
+    maxSize: 10
+    volumeSize: 100
+    volumeType: gp2
+    volumeEncrypted: true
+    iam:
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+      withAddonPolicies:
+        imageBuilder: true
+        autoScaler: true
+        certManager: true
+        appMesh: true
+        ebs: true
+        fsx: true
+        efs: true
+        albIngress: true
+        xRay: true
+        cloudWatch: true
+    instancesDistribution:
+      onDemandPercentageAboveBaseCapacity: 0
+      instanceTypes:
+        - p3.8xlarge
+        - p2.8xlarge
+        - p2.xlarge
+        - p3.2xlarge
+        - p3.16xlarge
+        - p2.16xlarge
+      spotInstancePools: 6
+    tags:
+      k8s.io/cluster-autoscaler/node-template/taint/dedicated: nvidia.com/gpu=true
+      k8s.io/cluster-autoscaler/node-template/label/nvidia.com/gpu: 'true'
+      k8s.io/cluster-autoscaler/enabled: 'true'
+    labels:
+      lifecycle: Ec2Spot
+      nvidia.com/gpu: 'true'
+      k8s.amazonaws.com/accelerator: nvidia-tesla
+    taints:
+      spotInstance: "true:PreferNoSchedule"
+      nvidia.com/gpu: "true:NoSchedule"
+    privateNetworking: true
+    availabilityZones: ["us-west-2b"]
+
+  # spot GPU NG - west-2c AZ, scale from 0
+  - name: gpu-spot-ng-c
+    ami: auto
+    instanceType: mixed
+    desiredCapacity: 0
+    minSize: 0
+    maxSize: 10
+    volumeSize: 100
+    volumeType: gp2
+    volumeEncrypted: true
+    iam:
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+      withAddonPolicies:
+        imageBuilder: true
+        autoScaler: true
+        certManager: true
+        appMesh: true
+        ebs: true
+        fsx: true
+        efs: true
+        albIngress: true
+        xRay: true
+        cloudWatch: true
+    instancesDistribution:
+      onDemandPercentageAboveBaseCapacity: 0
+      instanceTypes:
+        - p3.8xlarge
+        - p2.8xlarge
+        - p2.xlarge
+        - p3.2xlarge
+        - p3.16xlarge
+        - p2.16xlarge
+      spotInstancePools: 6
+    tags:
+      k8s.io/cluster-autoscaler/node-template/taint/dedicated: nvidia.com/gpu=true
+      k8s.io/cluster-autoscaler/node-template/label/nvidia.com/gpu: 'true'
+      k8s.io/cluster-autoscaler/enabled: 'true'
+    labels:
+      lifecycle: Ec2Spot
+      nvidia.com/gpu: 'true'
+      k8s.amazonaws.com/accelerator: nvidia-tesla
+    taints:
+      spotInstance: "true:PreferNoSchedule"
+      nvidia.com/gpu: "true:NoSchedule"
+    privateNetworking: true
+    availabilityZones: ["us-west-2c"]
+
+
