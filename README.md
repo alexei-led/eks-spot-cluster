@@ -54,4 +54,47 @@ Follow guide from [kube-ssm-agent](https://github.com/alexei-led/kube-ssm-agent)
 kubectl create -f daemonset.yaml
 ```
 
-## 
+### Session to EKS node
+
+First, list all EKS nodes with instance types and instance IDs.
+
+```sh
+kubectl k get nodes --output="custom-columns=NAME:.metadata.name,ID:.spec.providerID,TYPE:.metadata.labels.beta\.kubernetes\.io\/instance-type"
+
+NAME                                            ID                                      TYPE
+ip-192-168-102-82.us-west-2.compute.internal    aws:///us-west-2a/i-00ca7c066c89291e6   p2.xlarge
+ip-192-168-103-6.us-west-2.compute.internal     aws:///us-west-2a/i-0d4737e4e56baa5c5   p3.2xlarge
+ip-192-168-108-201.us-west-2.compute.internal   aws:///us-west-2a/i-0b70fe641d4d5e93a   c4.4xlarge
+ip-192-168-134-221.us-west-2.compute.internal   aws:///us-west-2b/i-064b071e6047b9524   p2.8xlarge
+ip-192-168-189-140.us-west-2.compute.internal   aws:///us-west-2c/i-04753b8b515e9ea35   c4.4xlarge
+```
+
+Then, select any instance and open a shell to it:
+
+```sh
+aws ssm start-session --target i-0d4737e4e56baa5c5
+
+Starting session with SessionId: ....
+sh-4.2$
+```
+
+## Run GPU workload
+
+The generated EKS cluster has 3 GPU-powered node groups that can be scaled from 0 to serve requested GPU tasks and get back to 0 when work is completed.
+
+### How does it work
+
+Cluster autoscaler uses `k8s.io/cluster-autoscaler/enabled` ASG tag for auto-discovery across multiple AZ zones (using `--balance-similar-node-groups` flag).
+
+Cluster autoscaler scales workload based on requested resource, `nvidia/gpu` for GPU workload.
+
+All GPU EKS node are protected with `taint`: `nvidia.com/gpu: "true:NoSchedule"` and in order to run a GPU workload on these nodes, the workload must define a corresponding `tollerations`, like following:
+
+```yaml
+...
+tolerations:
+  - key: "nvidia.com/gpu"
+    operator: "Exists"
+    effect: "NoSchedule"
+...
+```
