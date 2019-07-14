@@ -41,9 +41,14 @@ nodeGroups:
       instanceTypes:
         - m4.2xlarge
         - m4.4xlarge
+        - m5.2xlarge
+        - m5.4xlarge
+        - m5a.2xlarge
+        - m5a.4xlarge
+        - c4.2xlarge
         - c4.4xlarge
         - c5.2xlarge
-        - m5.2xlarge
+        - c5.4xlarge
       spotInstancePools: 15
     tags:
       k8s.io/cluster-autoscaler/enabled: 'true'
