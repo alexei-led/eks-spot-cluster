@@ -110,6 +110,24 @@ subjects:
     namespace: kube-system
 
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cluster-autoscaler
+  namespace: kube-system
+  labels:
+    name: cluster-autoscaler
+  annotations:
+    prometheus.io/scrape: 'true'
+spec:
+  ports:
+    - name: http
+      port: 8085
+      targetPort: app
+  selector:
+    app: cluster-autoscaler
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -131,6 +149,14 @@ spec:
       containers:
         - image: k8s.gcr.io/cluster-autoscaler:v1.15.0
           name: cluster-autoscaler
+          livenessProbe:
+            httpGet:
+              path: /health-check
+              port: 8085
+          readinessProbe:
+            httpGet:
+              path: /health-check
+              port: 8085
           resources:
             limits:
               cpu: 100m
@@ -147,6 +173,9 @@ spec:
             - --expander=least-waste
             - --balance-similar-node-groups
             - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled
+          ports:
+          - name: app
+            containerPort: 8085
           volumeMounts:
             - name: ssl-certs
               mountPath: /etc/ssl/certs/ca-certificates.crt
