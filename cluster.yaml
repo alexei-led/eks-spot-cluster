@@ -92,10 +92,7 @@ nodeGroups:
         - p2.xlarge
         - p2.8xlarge
         - p2.16xlarge
-        - g3.4xlarge
-        - g3.8xlarge
-        - g3.16xlarge
-      spotInstancePools: 7
+      spotInstancePools: 5
     tags:
       k8s.io/cluster-autoscaler/node-template/taint/dedicated: nvidia.com/gpu=true
       k8s.io/cluster-autoscaler/node-template/label/nvidia.com/gpu: 'true'
