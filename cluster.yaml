@@ -22,7 +22,6 @@ nodeGroups:
     volumeEncrypted: true
     iam:
       attachPolicyARNs:
-        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
       withAddonPolicies:
@@ -69,7 +68,6 @@ nodeGroups:
     volumeEncrypted: true
     iam:
       attachPolicyARNs:
-        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
       withAddonPolicies:
@@ -119,7 +117,6 @@ nodeGroups:
     volumeEncrypted: true
     iam:
       attachPolicyARNs:
-        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
       withAddonPolicies:
@@ -169,7 +166,6 @@ nodeGroups:
     volumeEncrypted: true
     iam:
       attachPolicyARNs:
-        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
       withAddonPolicies:
